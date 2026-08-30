@@ -42,8 +42,12 @@ export default function Footer() {
           Built by The Outliers · Prompt-engineered with Claude Code · Model
           runs entirely in your browser
         </p>
+        <p className="mt-3 text-xs font-medium leading-relaxed tracking-wide text-slate-500 sm:text-sm">
+          M R Darshan<span className="mx-2.5">·</span>Tarun A
+          <span className="mx-2.5">·</span>Akash S
+        </p>
         <p className="mt-1 text-[11px] font-medium leading-relaxed text-slate-500 sm:text-xs">
-          M R Darshan · Tarun A · Akash S
+          Sri Krishna College of Technology
         </p>
       </div>
     </footer>
