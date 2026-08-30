@@ -25,7 +25,7 @@ page shows the pipeline between your text and the model's next word.
 
 ## How the model works
 
-- A **word-level trigram language model** trained at page load from ~258
+- A **word-level trigram language model** trained at page load from ~1,500
   short sentences bundled with the app. No network, no APIs, no backend.
 - **Backoff:** trigram → bigram → unigram, combined by recursive
   interpolation — a context seen *c* times earns weight *c*/(*c*+4), and
@@ -35,6 +35,10 @@ page shows the pipeline between your text and the model's next word.
 - **Temperature:** applied as softmax over log-probabilities divided by T
   (equivalently p^(1/T), renormalised) — low T sharpens the distribution,
   high T flattens it.
+- **Writing:** "Let it write" samples from the top 5 candidates only
+  (renormalised), and once a sentence reaches 8 tokens the probability of
+  "." is tripled so sentences finish. The displayed bars always show the
+  unshaped top 8 + "everything else".
 
 **An honest note on attention:** the attention view is *illustrative* — a
 simplified stand-in for real transformer attention, not the real thing. Each

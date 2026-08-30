@@ -1,271 +1,477 @@
-// Original training corpus for the in-browser trigram model.
-// ~258 short, simple sentences written for this project — no copied text.
-// Punctuation is spaced so the tokenizer treats . , ? ! as their own tokens.
-export const CORPUS = [
-  // --- animals ---
-  "the cat sat on the mat .",
-  "the cat sat on the warm floor .",
-  "the old cat slept on the mat .",
-  "a small cat slept in the sun .",
-  "the dog ran across the green field .",
-  "the dog barked at the mail truck .",
-  "my dog loves long walks in the park .",
-  "the bird sang from the tall tree .",
-  "a little bird landed on the fence .",
-  "the fish swam slowly in the clear water .",
-  "the horse ate grass near the old barn .",
-  "the cow stood quietly in the field .",
-  "a rabbit hopped over the low wall .",
-  "the cat chased the red ball .",
-  "the dog chased the cat around the house .",
-  "the cat drank milk from a small bowl .",
-  "the kitten played with a ball of wool .",
-  "the old dog slept by the fire .",
-  "the cat sat on the chair and watched the rain .",
-  "birds fly south when the winter comes .",
-  "the duck swam across the quiet pond .",
-  "a fox crossed the road at night .",
-  "the sheep stayed close to the gate .",
-  "the cat jumped onto the kitchen table .",
-  "the dog waited by the front door .",
-  "the mouse hid under the wooden floor .",
-  "bees buzzed around the summer flowers .",
-  "the owl watched the field from a high branch .",
-  "my cat hates the sound of thunder .",
-  "the puppy fell asleep in the basket .",
-  "the goat climbed onto the rocks .",
-  "ants marched across the warm stone .",
-  "the cat sat on the window ledge .",
-  "a big dog slept in the shade .",
-  "the parrot repeated every word we said .",
-  "the cat licked its paw and yawned .",
-  // --- weather ---
-  "the weather is nice today .",
-  "the weather is cold this morning .",
-  "i think the weather will change soon .",
-  "i think the weather is getting warmer .",
-  "the rain fell softly on the roof .",
-  "heavy rain flooded the narrow street .",
-  "the sun rose over the quiet hills .",
-  "the sun set behind the tall buildings .",
-  "a cold wind blew through the trees .",
-  "the storm passed before midnight .",
-  "snow covered the whole town by morning .",
-  "the sky turned grey before the storm .",
-  "the clouds moved slowly across the sky .",
-  "fog covered the bridge at dawn .",
-  "it rained all day on sunday .",
-  "the morning air felt fresh and cool .",
-  "thunder rolled across the dark sky .",
-  "the summer heat made everyone slow .",
-  "a rainbow appeared after the rain .",
-  "the wind pushed the small boat to shore .",
-  "winter came early this year .",
-  "spring brought new leaves to the trees .",
-  "the afternoon sun warmed the old bench .",
-  "ice covered the pond in january .",
-  "the forecast said rain for the weekend .",
-  "we watched the storm from the window .",
+// Original training corpus for the in-browser trigram model — ~1,500 short,
+// simple, present-tense subject–verb–object sentences written for this
+// project. No copied text. The corpus is deliberately pattern-heavy: common
+// phrases and structures repeat often so the trigram statistics are strong
+// and the model writes more coherent text. Every sentence ends with a period.
+const CORPUS = [];
+const add = (s) => CORPUS.push(s);
+
+// One sentence per subject × verb pair, rotating the objects so each object
+// appears evenly. Keeps a block's size at |subjects| × |verbs|.
+const cross = (subs, verbs, objs) => {
+  subs.forEach((s, i) => {
+    verbs.forEach((v, j) => {
+      add(`${s} ${v} ${objs[(i + j) % objs.length]} .`);
+    });
+  });
+};
+
+// Every subject × verb × object combination.
+const full = (subs, verbs, objs) => {
+  for (const s of subs)
+    for (const v of verbs) for (const o of objs) add(`${s} ${v} ${o} .`);
+};
+
+// ---- animals ----
+const animals = [
+  "the cat",
+  "the dog",
+  "the bird",
+  "the kitten",
+  "the puppy",
+  "the rabbit",
+  "the old cat",
+  "the big dog",
+  "the small bird",
+  "the mouse",
+];
+
+cross(
+  animals,
+  ["sleeps on", "sits on", "rests on", "waits by", "hides under", "jumps on", "plays near", "lies on"],
+  ["the mat", "the rug", "the chair", "the bed", "the sofa", "the floor", "the porch", "the wall", "the table", "the step"]
+);
+
+cross(
+  animals,
+  ["eats", "wants", "likes", "sees", "finds"],
+  ["the food", "the bread", "the fish", "the rice", "the fruit", "the grass", "the seeds", "the corn"]
+);
+
+full(
+  ["the cat", "the dog", "the kitten", "the puppy", "the horse"],
+  ["drinks"],
+  ["the milk", "the water"]
+);
+
+cross(
+  animals,
+  ["sleeps", "waits", "plays", "rests", "hides", "runs"],
+  ["at night", "in the morning", "in the evening", "in the garden", "in the yard", "in the sun"]
+);
+
+// ---- people at home ----
+const people = [
+  "my mother",
+  "my father",
+  "my sister",
+  "my brother",
+  "my friend",
+  "the man",
+  "the woman",
+  "the boy",
+  "the girl",
+  "grandma",
+];
+
+cross(
+  people,
+  ["cleans", "opens", "closes", "paints", "fixes", "watches"],
+  ["the kitchen", "the window", "the door", "the fence", "the chair", "the garden", "the house", "the gate"]
+);
+
+cross(
+  people,
+  ["makes", "cooks", "serves", "shares", "brings"],
+  ["the tea", "the rice", "the soup", "the bread", "the salad", "the dinner", "the coffee", "the cake"]
+);
+
+cross(
+  people,
+  ["reads", "cooks", "works", "rests", "sings", "walks"],
+  ["in the morning", "in the evening", "at night", "on sunday", "every day", "after dinner"]
+);
+
+// ---- school and reading ----
+cross(
+  ["the teacher", "the student", "the boy", "the girl", "my friend", "my sister", "the professor", "the writer"],
+  ["reads", "writes", "studies", "learns", "finishes", "starts"],
+  ["the book", "the lesson", "the story", "the letter", "the homework", "the notes", "the test", "the poem"]
+);
+
+[
+  "the teacher writes on the board .",
+  "the teacher reads to the class .",
+  "the students listen to the teacher .",
+  "the students ask good questions .",
+  "the class starts at nine .",
+  "the bell rings at noon .",
+  "the library is quiet and warm .",
+  "the school bus stops at the corner .",
+  "the homework takes the whole evening .",
+  "the exam starts on monday .",
+  "the class plants a small garden .",
+  "the kids draw pictures of their pets .",
+  "the chalk squeaks on the old board .",
+  "reading opens doors to other worlds .",
+  "learning a language takes time and patience .",
+  "the notebook is full of small drawings .",
+  "the lesson is about the stars .",
+  "the school is quiet in the summer .",
+  "the students walk home together .",
+  "the teacher smiles at the class .",
+].forEach(add);
+
+// ---- places and adjectives ----
+const places = [
+  "the house",
+  "the room",
+  "the street",
+  "the school",
+  "the garden",
+  "the kitchen",
+  "the city",
+  "the park",
+  "the library",
+  "the station",
+];
+
+full(places, ["is"], ["quiet", "clean", "warm", "cold", "busy", "empty"]);
+
+full(
+  ["the internet", "the library", "the kitchen", "the garden", "the school", "the park", "the market", "the station"],
+  ["is"],
+  ["a quiet place", "a busy place", "a warm place", "a good place", "a big place", "a noisy place"]
+);
+
+// ---- weather ----
+for (const a of ["nice", "cold", "warm", "wet", "windy", "cloudy", "sunny", "grey"]) {
+  for (const t of ["today", "this morning", "this week"]) {
+    add(`the weather is ${a} ${t} .`);
+  }
+}
+
+full(
+  ["the rain", "the snow"],
+  ["falls on"],
+  ["the roof", "the street", "the field", "the hills", "the garden", "the town"]
+);
+full(["the wind"], ["blows through", "blows over"], ["the trees", "the valley", "the street", "the field"]);
+full(
+  ["the sun"],
+  ["shines on", "rises over", "sets behind"],
+  ["the field", "the hills", "the sea", "the town", "the river"]
+);
+full(["the clouds"], ["move across", "drift over"], ["the sky", "the hills", "the city"]);
+
+[
+  "the storm passes before midnight .",
+  "the fog covers the bridge at dawn .",
+  "it rains all day .",
+  "it rains in april .",
+  "it snows in january .",
+  "the air feels cold this morning .",
+  "the air feels fresh after the rain .",
+  "the sky turns grey before the storm .",
+  "a warm breeze comes from the sea .",
+  "the ice covers the pond .",
+  "winter comes early this year .",
+  "spring brings new leaves to the trees .",
+  "the first snow falls in november .",
+  "a rainbow appears after the rain .",
+  "thunder rolls across the dark sky .",
+  "the heat makes everyone slow .",
+  "the forecast says rain for the weekend .",
   "the weather in the mountains changes fast .",
-  "a warm breeze came in from the sea .",
-  "the first snow fell while we slept .",
-  "the weather report was wrong again .",
-  // --- food ---
-  "we ate warm bread with butter .",
-  "the soup smelled like home .",
-  "she baked a chocolate cake for the party .",
-  "i like tea with a little honey .",
-  "he drinks coffee every morning .",
-  "the market sells fresh fruit and vegetables .",
-  "we bought apples from the farm stand .",
-  "dinner was rice with beans and corn .",
-  "the pizza arrived hot and late .",
-  "lunch is the best part of my day .",
-  "she cut the tomatoes for the salad .",
-  "the bread was still warm from the oven .",
-  "we shared a bowl of noodles .",
-  "the kitchen smelled of onions and garlic .",
-  "he made pancakes on saturday morning .",
-  "the mango was sweet and ripe .",
-  "i had eggs and toast for breakfast .",
-  "the tea went cold while we talked .",
-  "grandma made soup that could fix a bad day .",
-  "we picked berries by the river .",
-  "the cheese melted over the warm bread .",
-  "salt makes the soup taste better .",
-  "the children ate ice cream in the park .",
-  "he burned the rice again .",
-  "a good meal needs time and care .",
-  // --- cities and travel ---
+  "the morning is cool and clear .",
+  "the evening is warm and still .",
+].forEach(add);
+
+// ---- city and travel ----
+full(
+  ["the bus", "the train", "the taxi", "the tram"],
+  ["stops at", "waits at", "arrives at"],
+  ["the station", "the corner", "the square", "the market"]
+);
+full(["the bus", "the train", "the boat", "the plane"], ["leaves at"], ["nine", "ten", "noon", "six"]);
+full(
+  ["we", "they", "the children", "the students"],
+  ["walk to", "go to", "ride to"],
+  ["the market", "the school", "the park", "the station"]
+);
+full(
+  ["she", "he", "the man", "the woman"],
+  ["walks to", "goes to", "rides to"],
+  ["the market", "the school", "the park", "the station"]
+);
+
+[
   "the city wakes up before the sun .",
-  "the streets were full of people and noise .",
-  "the old town has narrow stone streets .",
-  "we took the last train home .",
-  "the bus was late again this morning .",
-  "lights from the tall buildings filled the night .",
+  "the streets are full of people .",
+  "the old town has narrow streets .",
   "the bridge crosses the wide river .",
-  "we walked along the harbor at sunset .",
-  "the market square was busy on friday .",
-  "taxis lined up outside the station .",
-  "the museum was quiet on monday .",
-  "she moved to a new city for work .",
-  "the map led us to a small cafe .",
-  "traffic filled every road at five .",
-  "the train passed fields and small towns .",
-  "we got lost in the old quarter .",
-  "street music echoed between the walls .",
+  "the market square is busy on friday .",
+  "the museum is quiet on monday .",
+  "the tower is the oldest building in town .",
+  "the last bus leaves at midnight .",
+  "a new bakery opens on our street .",
+  "the lights of the city glow at night .",
+  "the harbor is calm at sunset .",
+  "the airport is crowded before the holiday .",
+  "the map leads us to a small cafe .",
+  "the train passes fields and small towns .",
+  "street music echoes between the walls .",
   "the park in the center is always green .",
   "every city has its own sound .",
-  "the airport was crowded before the holiday .",
-  "we watched boats come into the port .",
-  "the tower is the oldest building in town .",
+  "the boats come into the port at dusk .",
   "rain makes the city lights look soft .",
-  "the last bus leaves at midnight .",
-  "a new bakery opened on our street .",
-  // --- school and learning ---
-  "the teacher wrote the answer on the board .",
-  "the students asked many good questions .",
-  "i study best in the early morning .",
-  "the library is quiet and warm .",
-  "she read three books last week .",
-  "the test was harder than we expected .",
-  "he practices the piano every evening .",
-  "the class planted a small garden .",
-  "we learned about the stars in science class .",
-  "the bell rang and the hall filled with noise .",
-  "her notebook is full of small drawings .",
-  "the exam starts at nine on monday .",
-  "good questions matter more than fast answers .",
-  "the school bus stops at the corner .",
-  "we solved the puzzle together .",
-  "the little kids drew pictures of their pets .",
-  "history class told us about old cities .",
-  "the homework took the whole evening .",
-  "she teaches math with games and stories .",
-  "reading opens doors to other worlds .",
-  "the professor spoke slowly and clearly .",
-  "we watched a film about the ocean .",
-  "his favorite subject is geography .",
-  "the chalk squeaked on the old board .",
-  "learning a language takes time and patience .",
-  // --- everyday life ---
-  "she opened the window to let in the air .",
-  "the house was quiet after the guests left .",
-  "he fixed the broken chair with glue .",
-  "we played cards until late at night .",
-  "the garden needs water every evening .",
-  "my keys were in my coat pocket all along .",
-  "the phone rang twice and then stopped .",
-  "she hums old songs while she cooks .",
-  "the clock on the wall runs five minutes fast .",
-  "we painted the fence bright blue .",
-  "the baby laughed at the funny sound .",
-  "he walks to work when the sun is out .",
-  "the mirror in the hall is very old .",
-  "she planted roses along the path .",
-  "the letter arrived two weeks late .",
-  "we cleaned the whole house on sunday .",
-  "the candle burned low while we talked .",
-  "his shoes were wet from the rain .",
-  "the neighbors are kind and quiet .",
-  "she saves a little money every month .",
-  "the door creaks when the wind blows .",
-  "we watched the stars from the roof .",
-  "the old radio still works fine .",
-  "he tells the same joke every year .",
-  "the family ate dinner together every night .",
-  "her smile made the long day easier .",
-  "the children built a fort from old boxes .",
-  "i lost my umbrella on the bus .",
-  "the children left their wet shoes on the mat .",
-  "we planted a tree for the new year .",
-  "sleep comes easy after a day outside .",
-  "the market opens early on saturday .",
-  "she wrote a letter to her old friend .",
-  "the small lamp made the room feel warm .",
-  "laughter filled the kitchen that evening .",
-  "he whistles while he waters the plants .",
-  "the stairs creak on the third step .",
-  "we folded the clean clothes together .",
-  "a quiet morning is a small gift .",
-  "the calendar still shows last month .",
-  // --- nature ---
-  "the river runs slow in late summer .",
-  "tall trees line the mountain road .",
-  "the lake was still as glass at dawn .",
-  "waves crashed against the grey rocks .",
+  "the shops close early on sunday .",
+].forEach(add);
+
+// ---- pronouns and everyday objects ----
+full(["she", "he"], ["opens", "closes", "cleans"], ["the window", "the door", "the gate", "the box"]);
+full(["she", "he"], ["reads", "writes"], ["the book", "the letter", "the note", "the story"]);
+full(["she", "he"], ["takes", "brings", "finds"], ["the bag", "the cup", "the keys", "the phone"]);
+full(
+  ["we", "they", "i"],
+  ["like", "want", "need"],
+  ["the tea", "the bread", "the rice", "the soup", "the music", "the rain"]
+);
+
+// ---- meals ----
+for (const food of ["bread", "rice", "eggs", "fruit", "soup", "fish", "pasta", "toast"]) {
+  for (const meal of ["breakfast", "lunch", "dinner"]) {
+    add(`we eat ${food} for ${meal} .`);
+  }
+}
+for (const food of ["bread", "rice", "soup", "fruit"]) {
+  for (const meal of ["breakfast", "lunch", "dinner"]) {
+    add(`she eats ${food} for ${meal} .`);
+  }
+}
+
+// ---- nature ----
+full(
+  ["the river", "the stream"],
+  ["runs through", "flows through"],
+  ["the valley", "the field", "the town", "the forest"]
+);
+full(["the trees", "the flowers"], ["grow on", "grow near"], ["the hill", "the river", "the wall", "the path"]);
+
+[
+  "the moon lights the path through the field .",
+  "the stars fill the sky at night .",
+  "the lake is still at dawn .",
+  "the leaves fall in october .",
   "the forest smells of rain and earth .",
-  "flowers bloom first on the south hill .",
-  "the moon lit the path through the field .",
-  "stars filled the sky far from the city .",
-  "the valley turns gold in october .",
-  "a stream cuts through the green meadow .",
+  "the waves crash on the grey rocks .",
+  "the valley turns gold in autumn .",
   "the desert is cold at night .",
-  "leaves fell all week in the yard .",
   "the sea looks different every day .",
-  "mountains hold snow into late spring .",
+  "the mountains hold snow into spring .",
   "the trail ends at a small waterfall .",
-  "moss grows on the north side of the trees .",
+  "the moss grows on the north side of the trees .",
   "the island has one road and one shop .",
-  "the cave stayed cool all summer .",
+  "the garden hums with bees in june .",
   "wild horses live on the open plain .",
-  "the garden hums with life in june .",
-  // --- questions, exclamations, commas ---
-  "where did you put the keys ?",
-  "what time does the train leave ?",
-  "can you hear the rain ?",
-  "why is the sky blue ?",
-  "do you want tea or coffee ?",
-  "how far is the station from here ?",
-  "what a beautiful morning !",
-  "watch out for the ice !",
-  "that was the best meal ever !",
-  "well , that was a long day .",
-  "yes , the store is open today .",
-  "no , the bus does not stop here .",
-  "first we eat , then we talk .",
-  "the house , like the garden , was small and neat .",
-  "slow down , the road is wet .",
-  // --- computers, internet, artificial intelligence ---
+  "the birds sing in the tall trees .",
+  "the birds fly south in the winter .",
+  "the pond is quiet in the evening .",
+  "the path leads to the old bridge .",
+  "the hill looks green after the rain .",
+].forEach(add);
+
+// ---- colours, possessions, times ----
+full(["the door", "the fence", "the wall", "the roof", "the car", "the boat"], ["is"], ["blue", "green", "white", "red"]);
+full(
+  ["her book", "his bag", "my cup", "the pen", "the phone", "her coat"],
+  ["is on", "lies on"],
+  ["the table", "the desk", "the shelf", "the chair"]
+);
+full(
+  ["the class", "the lesson", "the game", "the show", "the market", "the movie"],
+  ["starts at", "ends at"],
+  ["nine", "ten", "noon", "five", "six"]
+);
+
+// ---- computers, the internet and AI (~245) ----
+[
   "the internet is a network of computers .",
-  "the internet is a network that never sleeps .",
-  "the internet is a big library that never closes .",
+  "the internet is a global network .",
+  "the internet is a big library .",
   "the internet is a noisy place .",
+  "the internet is a useful tool .",
+  "the internet connects the world .",
   "the internet connects people across the world .",
-  "computers follow instructions very quickly .",
-  "a computer stores data as numbers .",
-  "the computer restarted after the update .",
-  "my laptop battery dies before lunch .",
-  "the new phone has a better camera .",
-  "she writes code for a small company .",
-  "the program crashed twice this morning .",
-  "software needs testing before release .",
-  "the website loads faster now .",
-  "we sent the photos over the internet .",
-  "the email arrived in the wrong folder .",
-  "passwords should be long and strange .",
-  "the printer never works when you need it .",
+  "the internet never sleeps .",
+].forEach(add);
+
+full(
+  ["the computer", "the laptop", "the phone", "the server"],
+  ["runs", "loads", "opens", "saves", "closes"],
+  ["the program", "the game", "the file", "the app", "the page"]
+);
+
+full(
+  ["the model", "the network", "the system"],
+  ["learns", "predicts", "finds"],
+  ["the patterns", "the next word", "the answer", "the rules"]
+);
+
+[
   "artificial intelligence learns patterns from data .",
-  "artificial intelligence is changing how we work .",
-  "the model predicts the next word from context .",
-  "language models learn from huge amounts of text .",
+  "artificial intelligence changes how we work .",
+  "the model learns from the data .",
+  "language models learn from text .",
   "a neural network is made of simple parts .",
-  "the machine learned to spot cats in photos .",
+  "the machine learns to spot cats in photos .",
   "training a model takes a lot of data .",
   "the algorithm sorts the list in seconds .",
-  "robots build cars in the big factory .",
-  "the chatbot answered my question politely .",
+  "the chatbot answers the question .",
+  "the robot builds the cars in the factory .",
   "smart speakers listen for a wake word .",
-  "the screen went dark during the storm .",
-  "video calls make far friends feel near .",
-  "the game runs smoothly on the old machine .",
-  "we backed up the files to the cloud .",
-  "the search engine found the answer fast .",
-  "data moves through wires and through air .",
+  "the program follows the instructions .",
+  "computers follow instructions very quickly .",
+  "a computer stores data as numbers .",
+  "the model predicts the next word from context .",
+].forEach(add);
+
+full(
+  ["she", "he", "the student", "the engineer"],
+  ["writes", "tests", "fixes"],
+  ["the code", "the program", "the script", "the website"]
+);
+
+["we", "they"].forEach((s, i) =>
+  ["send", "share", "upload"].forEach((v, j) =>
+    ["the photos", "the files", "the videos"].forEach((o, k) =>
+      add(`${s} ${v} ${o} ${["on the internet", "to the cloud"][(i + j + k) % 2]} .`)
+    )
+  )
+);
+
+[
+  "the wifi at the cafe is slow .",
+  "the screen glows in the dark room .",
   "the keyboard clicks in the quiet office .",
-  "every app wants my attention .",
-  "the update fixed one bug and added two .",
-  "the camera saves each picture to the card .",
-  "wifi at the cafe is slow but free .",
-  "technology changes , but people stay the same .",
-];
+  "the email arrives in the folder .",
+  "the website loads fast .",
+  "the printer works again .",
+  "the battery dies before lunch .",
+  "the update fixes the bug .",
+  "the camera saves the picture .",
+  "the search engine finds the answer .",
+  "the data moves through the wires .",
+  "the password is long and strange .",
+  "the app wants my attention .",
+  "the game runs on the old machine .",
+  "the video call connects the friends .",
+  "the code runs without errors .",
+  "the server stores the files .",
+  "the cloud keeps the photos safe .",
+  "the phone rings twice .",
+  "technology changes every year .",
+].forEach(add);
+
+// ---- general everyday literals ----
+[
+  "the phone rings twice and then stops .",
+  "the clock on the wall runs fast .",
+  "the door creaks when the wind blows .",
+  "the family eats dinner together .",
+  "the family eats dinner in the kitchen .",
+  "the baby laughs at the funny sound .",
+  "the neighbors are kind and quiet .",
+  "the stairs creak on the third step .",
+  "the candle burns low in the evening .",
+  "the old radio still works .",
+  "the garden needs water every evening .",
+  "sleep comes easy after a long day .",
+  "the market opens early on saturday .",
+  "a quiet morning is a small gift .",
+  "the small lamp makes the room feel warm .",
+  "laughter fills the kitchen in the evening .",
+  "the mirror in the hall is very old .",
+  "the letter arrives two weeks late .",
+  "the keys are in the coat pocket .",
+  "the house is quiet after the guests leave .",
+  "the kettle sings in the kitchen .",
+  "the soup smells like home .",
+  "the bread is warm from the oven .",
+  "the tea goes cold while we talk .",
+  "salt makes the soup taste better .",
+  "a good meal needs time and care .",
+  "the cheese melts over the warm bread .",
+  "the kitchen smells of onions and garlic .",
+  "the children eat ice cream in the park .",
+  "the children build a fort from old boxes .",
+  "the children play in the yard after school .",
+  "the fire burns low in the winter night .",
+  "the window looks out on the garden .",
+  "the curtains move in the soft wind .",
+  "the floor creaks under the old rug .",
+  "the shelf holds many old books .",
+  "the photo album sits on the top shelf .",
+  "the calendar still shows last month .",
+  "the plants grow fast in the warm room .",
+  "the roses bloom along the path .",
+  "the grass grows tall by the fence .",
+  "the gate swings open in the wind .",
+  "the well is deep and cold .",
+  "the barn stands at the edge of the field .",
+  "the farm wakes early every day .",
+  "the horse eats grass near the old barn .",
+  "the cow stands quietly in the field .",
+  "the sheep stay close to the gate .",
+  "the goat climbs onto the rocks .",
+  "the duck swims across the quiet pond .",
+  "the fish swim slowly in the clear water .",
+  "the owl watches the field from a high branch .",
+  "the fox crosses the road at night .",
+  "the bees buzz around the summer flowers .",
+  "the ants march across the warm stone .",
+  "the parrot repeats every word we say .",
+  "the cat licks its paw and yawns .",
+  "the dog waits by the front door .",
+  "the dog barks at the mail truck .",
+  "the cat watches the rain from the window .",
+  "the kitten plays with a ball of wool .",
+  "the puppy falls asleep in the basket .",
+  "my dog loves long walks in the park .",
+  "my cat hates the sound of thunder .",
+  "we play cards until late at night .",
+  "we watch the stars from the roof .",
+  "we clean the whole house on sunday .",
+  "we fold the clean clothes together .",
+  "we plant a tree for the new year .",
+  "we pick berries by the river .",
+  "we share a bowl of noodles .",
+  "we walk along the harbor at sunset .",
+  "we watch the storm from the window .",
+  "we take the last train home .",
+  "she hums old songs while she cooks .",
+  "she plants roses along the path .",
+  "she saves a little money every month .",
+  "she writes a letter to her old friend .",
+  "she teaches math with games and stories .",
+  "she moves to a new city for work .",
+  "he walks to work when the sun is out .",
+  "he fixes the broken chair with glue .",
+  "he tells the same joke every year .",
+  "he makes pancakes on saturday morning .",
+  "he whistles while he waters the plants .",
+  "he practices the piano every evening .",
+  "her smile makes the long day easier .",
+  "his shoes are wet from the rain .",
+  "i like tea with a little honey .",
+  "i study best in the early morning .",
+  "i lose my umbrella on the bus .",
+  "good questions matter more than fast answers .",
+  "the best part of the day is the quiet morning .",
+  "the day ends with a warm meal .",
+  "the night is long in december .",
+  "the morning starts with hot coffee .",
+  "the evening ends with a good book .",
+].forEach(add);
+
+export { CORPUS };

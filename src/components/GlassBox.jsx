@@ -17,7 +17,9 @@ import {
   vocabHas,
 } from "../lib/model";
 
-const EXAMPLES = ["The cat sat on the", "The internet is a", "I think the weather"];
+// Chosen by ranking sentence-initial 3-word starts by the confidence of
+// their continuations in the trained model.
+const EXAMPLES = ["The model predicts", "The river flows", "The bus stops"];
 const PUNCT = /^[.,?!]$/;
 const CONTEXT_WINDOW = 12;
 const MAX_TOKENS = 40;
@@ -380,7 +382,7 @@ export default function GlassBox() {
   const reduce = useReducedMotion();
   const [input, setInput] = useState("");
   const [debounced, setDebounced] = useState("");
-  const [temperature, setTemperature] = useState(0.8);
+  const [temperature, setTemperature] = useState(0.6);
   const [auto, setAuto] = useState(false);
   const [flash, setFlash] = useState(null); // { word, id } — last auto-written word
   const [progress, setProgress] = useState(0); // stages finished animating (0–3)
@@ -455,11 +457,17 @@ export default function GlassBox() {
   const appendWord = useCallback(
     async (word) => {
       const id = ++typeId.current;
-      const prefix = inputRef.current && !PUNCT.test(word) ? " " : "";
-      const text = prefix + word;
+      const isPunct = PUNCT.test(word);
+      const prefix = inputRef.current && !isPunct ? " " : "";
+      // Capitalise the word in the display when it starts a new sentence.
+      const display =
+        !isPunct && inputRef.current.trimEnd().endsWith(".")
+          ? word[0].toUpperCase() + word.slice(1)
+          : word;
+      const text = prefix + display;
       if (reduce) {
         setInput(inputRef.current + text);
-        setFlash({ word, id });
+        setFlash({ word: display, id });
         return;
       }
       for (const ch of text) {
@@ -467,7 +475,7 @@ export default function GlassBox() {
         setInput((prev) => prev + ch);
         await sleep(30);
       }
-      setFlash({ word, id });
+      setFlash({ word: display, id });
     },
     [reduce]
   );
@@ -502,7 +510,7 @@ export default function GlassBox() {
     setAuto(false);
     setFlash(null);
     setSentence("");
-    setTemperature(0.8);
+    setTemperature(0.6);
   };
 
   const hint =
@@ -536,7 +544,7 @@ export default function GlassBox() {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder='Try "The cat sat on the"'
+          placeholder='Try "The model predicts"'
           autoComplete="off"
           className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-base text-white placeholder:text-slate-500 outline-none transition-colors duration-200 focus:border-accent/50 focus:ring-2 focus:ring-accent/20"
         />
@@ -553,7 +561,7 @@ export default function GlassBox() {
         )}
       </div>
       <p className="mt-2 text-xs text-slate-500">
-        This is a tiny model trained on ~250 sentences — when it writes
+        This is a tiny model trained on ~1,500 sentences — when it writes
         nonsense, that&rsquo;s the point. Bigger models do the same thing with
         far more data.
       </p>
@@ -582,6 +590,9 @@ export default function GlassBox() {
             aria-label="Temperature"
             className="mt-1.5 w-full accent-accent"
           />
+          <p className="mt-1 text-[11px] text-slate-500">
+            writing samples from the top 5
+          </p>
         </div>
         <div className="flex flex-col items-start gap-2 md:items-end">
           <div className="flex flex-wrap gap-2">
