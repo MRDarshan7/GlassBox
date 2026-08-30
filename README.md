@@ -1,10 +1,32 @@
-# GlassBox
+<div align="center">
 
-**Type a sentence and watch a language model decide what comes next — every invisible step made visible, live in your browser.**
+# GlassBox — Watch a Language Model Think
 
-**Live demo:** [glass-box-black.vercel.app](https://glass-box-black.vercel.app/)
+*Every word an AI writes is the end of an invisible process.*
 
-`Vite` · `React` · `Tailwind CSS` · `Framer Motion` · `Vercel`
+<br>
+
+![React](https://img.shields.io/badge/React-18.3.1-61DAFB?style=for-the-badge&logo=react&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-6.4.3-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.3.3-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
+![Framer Motion](https://img.shields.io/badge/Framer_Motion-11.18.2-0055FF?style=for-the-badge&logo=framer&logoColor=white)
+
+![Build](https://img.shields.io/badge/Build-Passing-22C55E?style=for-the-badge)
+![Model](https://img.shields.io/badge/Model-Runs_in_browser-8B5CF6?style=for-the-badge)
+![Backend](https://img.shields.io/badge/Backend-None-64748B?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Live-F472B6?style=for-the-badge)
+
+<br>
+
+An interactive visualization that opens the black box of a language model — tokenization, attention and next-word probabilities animated in real time from a tiny trigram model running entirely in your browser.
+
+<br>
+
+[Live Demo](https://glass-box-black.vercel.app/) • [What the demo shows](#what-the-demo-shows) • [How the model works](#how-the-model-works) • [Design](#design) • [Running locally](#running-locally) • [Team](#team)
+
+</div>
+
+---
 
 ## Overview
 
