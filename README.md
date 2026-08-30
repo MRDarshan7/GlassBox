@@ -2,66 +2,88 @@
 
 **Type a sentence and watch a language model decide what comes next — every invisible step made visible, live in your browser.**
 
-## Problem statement
+**Live demo:** [glass-box-black.vercel.app](https://glass-box-black.vercel.app/)
 
-**PS2 – Visualizing the Invisible: "How AI thinks."**
+`Vite` · `React` · `Tailwind CSS` · `Framer Motion` · `Vercel`
 
-Every word an AI writes is the end of an invisible process. GlassBox opens the
-black box: a real (tiny) language model runs entirely in your browser, and the
-page shows the pipeline between your text and the model's next word
+## Overview
+
+GlassBox was built for the hackathon problem statement **PS2 – Visualizing the
+Invisible: "How AI thinks."** Every word an AI writes is the end of an
+invisible process, and GlassBox opens that black box: you type a sentence and
+the site shows the full pipeline between your text and the model's next word.
+A real (tiny) language model trains and runs entirely in the browser — no
+backend, no APIs, and nothing you type ever leaves the page.
 
 ## What the demo shows
 
 1. **Tokenization** — your sentence is chopped into tokens (words and
    punctuation), the pieces the model actually operates on.
-2. **Attention** — arcs from the last token back to the earlier tokens that
-   most influence the prediction, over a finite context window of the last 12
-   tokens (real models also see only a limited window of text).
-3. **Next-word probabilities** — the top 8 candidate words as animated bars,
-   the long tail as "everything else", and an uncertainty gauge driven by the
-   normalised entropy of the distribution. A temperature slider (0.1–2.0)
-   reshapes the distribution live, and "Let it write" / "Auto-write ×10"
-   sample from it to extend your sentence.
+2. **Attention** — arcs drawn from the last token back to the earlier tokens
+   that most influence the prediction, over a finite context window of the
+   last 12 tokens.
+3. **Next word** — the top 8 candidate words as animated probability bars,
+   with the remaining long tail shown honestly as "everything else."
+
+Around the pipeline: a **temperature slider** (0.1–2.0) reshapes the
+distribution live, an **uncertainty gauge** driven by the normalised entropy
+of the distribution says when the model is confident versus guessing, and
+**Let it write** / **Auto-write ×10** sample from the distribution to extend
+your sentence one word at a time.
 
 ## How the model works
 
-- A **word-level trigram language model** trained at page load from ~1,500
-  short sentences bundled with the app. No network, no APIs, no backend.
-- **Backoff:** trigram → bigram → unigram, combined by recursive
-  interpolation — a context seen *c* times earns weight *c*/(*c*+4), and
-  unseen contexts fall through to the next level down.
-- **Smoothing:** add-k (k = 0.01) at every level, so no word ever has zero
-  probability.
-- **Temperature:** applied as softmax over log-probabilities divided by T
-  (equivalently p^(1/T), renormalised) — low T sharpens the distribution,
-  high T flattens it.
-- **Writing:** "Let it write" samples from the top 5 candidates only
-  (renormalised), and once a sentence reaches 8 tokens the probability of
-  "." is tripled so sentences finish. The displayed bars always show the
-  unshaped top 8 + "everything else".
+- A **word-level trigram language model** with backoff to bigram and unigram
+  and **add-k smoothing** (k = 0.01), trained at page load from an original
+  corpus of ~1,500 short sentences bundled with the app.
+- **Temperature** is applied as softmax over log-probabilities divided by T —
+  low T sharpens the distribution, high T flattens it.
+- **Writing** uses **top-k sampling** (k = 5, renormalised) for coherence,
+  and gently boosts the probability of "." on long sentences so they finish.
+- **Context** is limited to a 12-token window, mirroring the finite context
+  of real models.
 
-**An honest note on attention:** the attention view is *illustrative* — a
-simplified stand-in for real transformer attention, not the real thing. Each
-earlier token is scored by recency decay (0.85 per token of distance) times
-the KL divergence between "what the model would predict if that word sat
-right before the last word" and the corpus-wide unigram baseline. There are
-no learned queries, keys, or values; it exists to make the *concept* of
-attention visible, and the UI labels it as such.
+### Limitations
 
-## Tech stack
+- The attention view is an **illustrative heuristic** — recency decay
+  multiplied by the KL-divergence shift each earlier word causes relative to
+  the unigram baseline. It is a simplified stand-in for transformer
+  attention, not the real thing, and the UI labels it as such.
+- A model this small drifts after a sentence or two. That is deliberate: the
+  site presents the drift as part of the lesson — bigger models do the same
+  thing with far more data.
 
-- [Vite](https://vitejs.dev/) + [React](https://react.dev/)
-- [Tailwind CSS v4](https://tailwindcss.com/)
-- [Framer Motion](https://www.framer.com/motion/)
+## Design
 
-## Tools used
+The site follows the **Playful Geometric** design system documented in
+[`docs/design-system.md`](docs/design-system.md): a warm paper background,
+chunky ink borders, hard offset shadows, a violet/pink/amber/mint palette,
+and bouncy, elastic motion. The hero is a scroll-bound **"opening box"** —
+two paper panels slide apart as you scroll to reveal the headline, and close
+again on the way back up. All motion respects `prefers-reduced-motion`; with
+it enabled, the box renders already open and animations settle instantly.
 
-- **Claude Code** (with Claude Fable 5) — the entire project was
-  prompt-engineered
-- Vite, React, Tailwind CSS, Framer Motion
-- Vercel (deployment)
+## Project structure
 
-## Run locally
+```
+glassbox/
+├── docs/
+│   └── design-system.md      # Playful Geometric design system
+├── src/
+│   ├── components/           # Nav, Hero, GlassBox (the demo), sections, ui
+│   ├── lib/
+│   │   ├── model.js          # trigram model: training, sampling, attention
+│   │   ├── corpus.js         # ~1,500-sentence original training corpus
+│   │   └── motion.js         # shared Framer Motion variants
+│   ├── App.jsx
+│   └── index.css             # design tokens (Tailwind v4 @theme)
+├── index.html
+└── vercel.json
+```
+
+## Running locally
+
+Requires **Node 18+** (Node 20 or newer recommended).
 
 ```bash
 npm install
@@ -70,6 +92,13 @@ npm run build    # production build
 npm run preview  # preview the production build
 ```
 
+## Built with
+
+Code generated with **Claude Code** (Claude Fable 5), driven by the prompts
+documented in the submission.
+
 ## Team
 
-**The Outliers**
+**The Outliers** — M R Darshan, Tarun A, Akash S
+
+Sri Krishna College of Engineering and Technology
