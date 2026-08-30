@@ -1,76 +1,173 @@
-import { motion } from "framer-motion";
-import { EASE } from "../lib/motion";
+import { useRef } from "react";
+import {
+  motion,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+} from "framer-motion";
+import { CANDY_BTN, Squiggle } from "./ui";
 
-const HEADLINE = "Every word an AI writes is the end of an invisible process.";
-const words = HEADLINE.split(" ");
-
-const container = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.07, delayChildren: 0.2 } },
+const DOTS = {
+  backgroundImage: "radial-gradient(#E2E8F0 2px, transparent 2px)",
+  backgroundSize: "22px 22px",
 };
 
-const word = {
-  hidden: { opacity: 0, y: "0.5em" },
-  show: { opacity: 1, y: 0, transition: { duration: 0.55, ease: EASE } },
-};
-
-const lateFade = (delay) => ({
-  hidden: { opacity: 0, y: 16 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: EASE, delay } },
-});
-
-export default function Hero() {
+function HeroContent() {
   return (
-    <section
-      id="top"
-      className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden px-4 pt-14 text-center sm:px-6 sm:pt-16"
-    >
-      {/* Soft radial cyan glow behind the headline */}
+    <div className="relative mx-auto max-w-4xl px-4 text-center">
+      {/* massive amber circle behind the headline */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[30rem] w-[90vw] max-w-3xl -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(34,211,238,0.14),transparent_70%)] blur-2xl"
+        className="absolute left-1/2 top-1/2 -z-10 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-ink bg-amber sm:h-[26rem] sm:w-[26rem]"
       />
-
-      <motion.div variants={container} initial="hidden" animate="show">
-        <h1 className="mx-auto max-w-4xl text-balance text-4xl font-bold tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl">
-          {words.map((w, i) => (
-            <motion.span
-              key={i}
-              variants={word}
-              className="mr-[0.27em] inline-block will-change-transform"
-            >
-              {w}
-            </motion.span>
-          ))}
-        </h1>
-      </motion.div>
-
-      <motion.p
-        variants={lateFade(words.length * 0.07 + 0.35)}
-        initial="hidden"
-        animate="show"
-        className="mx-auto mt-6 max-w-xl text-balance text-base leading-relaxed text-slate-400 sm:text-lg"
+      {/* confetti */}
+      <div
+        aria-hidden="true"
+        className="absolute -left-2 -top-6 hidden h-6 w-6 rotate-12 rounded-md border-2 border-ink bg-mint sm:block"
+      />
+      <div
+        aria-hidden="true"
+        className="absolute -right-8 top-8 hidden h-5 w-5 rounded-full border-2 border-ink bg-pink sm:block"
+      />
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 24 22"
+        className="absolute -bottom-10 left-6 hidden h-6 w-6 -rotate-12 sm:block"
       >
-        GlassBox opens the black box. Type a sentence and watch a language model
-        decide what comes next.
-      </motion.p>
+        <path
+          d="M12 2 22 20 H2 Z"
+          fill="#8B5CF6"
+          stroke="#1E293B"
+          strokeWidth="2.5"
+          strokeLinejoin="round"
+        />
+      </svg>
 
-      <motion.div
-        variants={lateFade(words.length * 0.07 + 0.55)}
-        initial="hidden"
-        animate="show"
-        className="mt-10"
-      >
-        <motion.a
-          href="#visualization"
-          whileHover={{ scale: 1.04 }}
-          whileTap={{ scale: 0.97 }}
-          transition={{ duration: 0.2, ease: EASE }}
-          className="inline-block rounded-full bg-accent px-8 py-3.5 text-sm font-semibold text-ink shadow-[0_0_30px_rgba(34,211,238,0.35)] transition-shadow duration-300 hover:shadow-[0_0_45px_rgba(34,211,238,0.5)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent sm:text-base"
-        >
+      <h1 className="font-display text-4xl font-extrabold tracking-tight text-ink sm:text-6xl lg:text-7xl">
+        Every word an{" "}
+        <span className="mx-1 inline-block -rotate-2 rounded-xl border-2 border-ink bg-accent px-3 text-white shadow-[3px_3px_0_0_#1E293B]">
+          AI
+        </span>{" "}
+        writes is the end of an{" "}
+        <span className="relative inline-block">
+          invisible
+          <Squiggle className="absolute -bottom-2 left-0 h-3 w-full" />
+        </span>{" "}
+        process.
+      </h1>
+
+      <p className="mx-auto mt-8 max-w-xl text-base font-semibold text-ink/80 sm:text-lg">
+        GlassBox opens the black box. Type a sentence and watch a language
+        model decide what comes next.
+      </p>
+
+      <div className="mt-10">
+        <a href="#visualization" className={`${CANDY_BTN} px-8 py-3.5 text-base`}>
           Open the box
-        </motion.a>
-      </motion.div>
+        </a>
+      </div>
+    </div>
+  );
+}
+
+// The hero is an "opening box": two flat paper panels meet at the centre and
+// slide apart as the user scrolls (bound to scroll position, so it reverses
+// on scroll up). Under prefers-reduced-motion it renders already open.
+export default function Hero() {
+  const reduce = useReducedMotion();
+  const ref = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start start", "end end"],
+  });
+  const xLeft = useTransform(scrollYProgress, [0.05, 0.7], ["0%", "-104%"]);
+  const xRight = useTransform(scrollYProgress, [0.05, 0.7], ["0%", "104%"]);
+  const claspOpacity = useTransform(scrollYProgress, [0, 0.12], [1, 0]);
+
+  if (reduce) {
+    return (
+      <section
+        id="top"
+        ref={ref}
+        className="flex min-h-svh items-center justify-center overflow-hidden pt-16"
+      >
+        <HeroContent />
+      </section>
+    );
+  }
+
+  return (
+    <section id="top" ref={ref} className="relative h-[190vh]">
+      <div className="sticky top-0 flex h-svh items-center justify-center overflow-hidden pt-16">
+        <HeroContent />
+
+        {/* left panel */}
+        <motion.div
+          aria-hidden="true"
+          style={{ x: xLeft }}
+          className="absolute inset-y-0 left-0 z-20 w-1/2 border-r-4 border-ink bg-paper"
+        >
+          <div className="absolute inset-0" style={DOTS} />
+          <div className="absolute -left-16 bottom-16 h-44 w-44 rounded-full border-2 border-ink bg-amber" />
+          <div className="absolute left-10 top-24 h-6 w-6 rotate-12 rounded-md border-2 border-ink bg-mint" />
+        </motion.div>
+
+        {/* right panel */}
+        <motion.div
+          aria-hidden="true"
+          style={{ x: xRight }}
+          className="absolute inset-y-0 right-0 z-20 w-1/2 border-l-4 border-ink bg-paper"
+        >
+          <div className="absolute inset-0" style={DOTS} />
+          <div className="absolute -right-12 top-20 h-36 w-36 rotate-12 rounded-3xl border-2 border-ink bg-pink" />
+          <div className="absolute bottom-28 right-16 h-5 w-5 rounded-full border-2 border-ink bg-accent" />
+        </motion.div>
+
+        {/* clasp + hint, fades as the box opens */}
+        <motion.div
+          style={{ opacity: claspOpacity }}
+          className="pointer-events-none absolute left-1/2 top-1/2 z-30 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-4"
+        >
+          <div className="grid h-20 w-20 place-items-center rounded-full border-2 border-ink bg-accent shadow-[4px_4px_0_0_#1E293B]">
+            <svg viewBox="0 0 24 24" fill="none" className="h-9 w-9">
+              <rect
+                x="4"
+                y="8"
+                width="16"
+                height="12"
+                rx="2"
+                stroke="#fff"
+                strokeWidth="2.5"
+              />
+              <path
+                d="M4 8l2-4h12l2 4M12 8v12"
+                stroke="#fff"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+          <div className="rounded-full border-2 border-ink bg-white px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-ink shadow-[3px_3px_0_0_#1E293B]">
+            scroll to open the box
+          </div>
+          <motion.svg
+            viewBox="0 0 24 24"
+            fill="none"
+            className="h-6 w-6"
+            animate={{ y: [0, 6, 0] }}
+            transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <path
+              d="M6 9l6 6 6-6"
+              stroke="#1E293B"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </motion.svg>
+        </motion.div>
+      </div>
     </section>
   );
 }

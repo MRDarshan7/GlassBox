@@ -1,5 +1,4 @@
 import { MotionConfig } from "framer-motion";
-import NeuralCanvas from "./components/NeuralCanvas";
 import Nav from "./components/Nav";
 import Hero from "./components/Hero";
 import Visualization from "./components/Visualization";
@@ -10,7 +9,6 @@ import Footer from "./components/Footer";
 export default function App() {
   return (
     <MotionConfig reducedMotion="user">
-      <NeuralCanvas />
       <Nav />
       <main>
         <Hero />

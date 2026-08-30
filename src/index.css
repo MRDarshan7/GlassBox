@@ -1,10 +1,17 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
+@source "../src";
+@source "../index.html";
 
 @theme {
-  --color-ink: #0b0f19;
-  --color-accent: #22d3ee;
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+  --color-paper: #fffdf5;
+  --color-ink: #1e293b;
+  --color-accent: #8b5cf6;
+  --color-pink: #f472b6;
+  --color-amber: #fbbf24;
+  --color-mint: #34d399;
+  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI",
     sans-serif;
+  --font-display: "Outfit", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 html {
@@ -18,10 +25,41 @@ html {
 }
 
 body {
-  @apply bg-ink font-sans text-slate-300 antialiased;
+  @apply bg-paper font-sans text-ink antialiased;
 }
 
 ::selection {
-  background: rgba(34, 211, 238, 0.25);
-  color: #fff;
+  background: rgba(139, 92, 246, 0.25);
+}
+
+@keyframes wiggle {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(3deg);
+  }
+  75% {
+    transform: rotate(-3deg);
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-track {
+  animation: marquee 28s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+  }
 }

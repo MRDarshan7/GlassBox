@@ -7,7 +7,7 @@ import {
   useState,
 } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { EASE } from "../lib/motion";
+import { EASE, EASE_POP } from "../lib/motion";
 import {
   attentionWeights,
   entropy,
@@ -28,47 +28,50 @@ const ARC_ROOM = 56; // vertical headroom above the chips for attention arcs
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const pct = (p) => (p >= 0.001 ? `${(p * 100).toFixed(1)}%` : "<0.1%");
 
+const BOUNCE = "ease-[cubic-bezier(0.34,1.56,0.64,1)]";
+
+const STAGE_COLORS = {
+  "01": "bg-accent text-white",
+  "02": "bg-pink text-white",
+  "03": "bg-mint text-ink",
+};
+
 function StageShell({ n, title, aside, lit, children }) {
   return (
-    <section className="border-t border-white/5 pt-5">
-      <div className="mb-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+    <section className="border-t-2 border-dashed border-slate-200 pt-6">
+      <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1">
         <span
-          className={`text-xs font-semibold tabular-nums transition-colors duration-300 ${
+          className={`grid h-7 w-7 place-items-center rounded-full border-2 font-display text-[11px] font-extrabold transition-all duration-300 ${
             lit
-              ? "text-accent [text-shadow:0_0_8px_rgba(34,211,238,0.6)]"
-              : "text-slate-600"
+              ? `border-ink shadow-[2px_2px_0_0_#1E293B] ${STAGE_COLORS[n]}`
+              : "border-slate-300 bg-white text-slate-400"
           }`}
         >
           {n}
         </span>
-        <h3 className="text-sm font-semibold text-white">{title}</h3>
-        {aside && <span className="ml-auto text-xs text-slate-500">{aside}</span>}
+        <h3 className="font-display text-sm font-bold text-ink">{title}</h3>
+        {aside && (
+          <span className="ml-auto text-xs font-semibold text-slate-500">
+            {aside}
+          </span>
+        )}
       </div>
       {children}
     </section>
   );
 }
 
+const BTN_STYLES = {
+  primary: `rounded-full border-2 border-ink bg-accent px-4 py-2 text-xs font-bold text-white shadow-[3px_3px_0_0_#1E293B] transition-all duration-300 ${BOUNCE} hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_0_#1E293B] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[1px_1px_0_0_#1E293B] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[3px_3px_0_0_#1E293B] sm:text-sm`,
+  outline: `rounded-full border-2 border-ink bg-white px-4 py-2 text-xs font-bold text-ink transition-all duration-300 ${BOUNCE} hover:bg-amber active:translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white sm:text-sm`,
+  subtle: `rounded-full border-2 border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-500 transition-all duration-300 ${BOUNCE} hover:border-ink hover:text-ink active:translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-40 sm:text-sm`,
+};
+
 function Btn({ children, variant = "primary", ...props }) {
-  const styles = {
-    primary:
-      "bg-accent text-ink shadow-[0_0_18px_rgba(34,211,238,0.28)] hover:shadow-[0_0_26px_rgba(34,211,238,0.45)]",
-    outline:
-      "border border-accent/40 text-accent hover:border-accent/70 hover:bg-accent/10",
-    subtle:
-      "border border-white/10 text-slate-400 hover:border-white/25 hover:text-slate-200",
-  };
   return (
-    <motion.button
-      type="button"
-      whileHover={{ scale: 1.03 }}
-      whileTap={{ scale: 0.96 }}
-      transition={{ duration: 0.2, ease: EASE }}
-      className={`rounded-full px-4 py-2 text-xs font-semibold transition-[box-shadow,color,border-color,background-color] duration-200 disabled:cursor-not-allowed disabled:opacity-40 sm:text-sm ${styles[variant]}`}
-      {...props}
-    >
+    <button type="button" className={BTN_STYLES[variant]} {...props}>
       {children}
-    </motion.button>
+    </button>
   );
 }
 
@@ -89,12 +92,12 @@ function TokenStage({ tokens, tokensKey, reduce, lit }) {
             transition={{
               delay: reduce ? 0 : Math.min(i, 20) * 0.06,
               duration: 0.3,
-              ease: EASE,
+              ease: EASE_POP,
             }}
             className={
               PUNCT.test(t)
-                ? "rounded-lg border border-white/5 bg-white/[0.02] px-2.5 py-1 text-sm text-slate-500"
-                : "rounded-lg border border-white/10 bg-white/[0.05] px-2.5 py-1 text-sm text-slate-200"
+                ? "rounded-lg border-2 border-slate-300 bg-slate-100 px-2.5 py-1 text-sm font-medium text-slate-500"
+                : "rounded-lg border-2 border-ink bg-white px-2.5 py-1 text-sm font-semibold text-ink shadow-[2px_2px_0_0_#E2E8F0]"
             }
           >
             {t}
@@ -145,16 +148,16 @@ function AttentionStage({ tokens, tokensKey, weights, truncated, delay, reduce, 
       title="Attention"
       lit={lit}
       aside={
-        <span className="group relative cursor-help underline decoration-dotted decoration-white/25 underline-offset-2">
+        <span className="group relative cursor-help underline decoration-dotted decoration-slate-400 underline-offset-2">
           context window: last {CONTEXT_WINDOW} tokens
-          <span className="pointer-events-none absolute right-0 top-full z-20 mt-1.5 hidden w-60 rounded-md border border-white/10 bg-ink px-2.5 py-1.5 text-[11px] leading-snug text-slate-400 group-hover:block">
+          <span className="pointer-events-none absolute right-0 top-full z-20 mt-1.5 hidden w-60 rounded-lg bg-ink px-2.5 py-1.5 text-[11px] font-medium leading-snug text-white group-hover:block">
             Real models also see only a limited window of text.
           </span>
         </span>
       }
     >
       {n < 2 ? (
-        <p className="text-sm text-slate-500">
+        <p className="text-sm font-medium text-slate-500">
           Attention needs at least two tokens — keep typing.
         </p>
       ) : (
@@ -176,8 +179,8 @@ function AttentionStage({ tokens, tokensKey, weights, truncated, delay, reduce, 
                     key={i}
                     d={`M ${lastPt.x} ${lastPt.y - 2} Q ${(lastPt.x + pt.x) / 2} ${cy} ${pt.x} ${pt.y - 2}`}
                     fill="none"
-                    stroke="#22D3EE"
-                    strokeWidth={1 + 4 * rel}
+                    stroke="#8B5CF6"
+                    strokeWidth={1.5 + 4 * rel}
                     strokeLinecap="round"
                     style={{ opacity: 0.15 + 0.85 * rel }}
                     initial={reduce ? false : { pathLength: 0 }}
@@ -193,7 +196,7 @@ function AttentionStage({ tokens, tokensKey, weights, truncated, delay, reduce, 
           </svg>
           <div className="flex flex-wrap gap-2">
             {truncated && (
-              <span className="rounded-lg border border-white/5 bg-white/[0.02] px-2.5 py-1 text-sm text-slate-600">
+              <span className="rounded-lg border-2 border-dashed border-slate-300 bg-white px-2.5 py-1 text-sm text-slate-400">
                 …
               </span>
             )}
@@ -201,16 +204,16 @@ function AttentionStage({ tokens, tokensKey, weights, truncated, delay, reduce, 
               const isLast = i === n - 1;
               const isStrong = i === strongest;
               let cls =
-                "relative rounded-lg border px-2.5 py-1 text-sm transition-shadow duration-300 ";
+                "relative rounded-lg border-2 px-2.5 py-1 text-sm font-semibold transition-all duration-300 ";
               if (isLast) {
-                cls += "border-accent/60 bg-accent/10 text-accent";
+                cls += "border-ink bg-accent text-white shadow-[2px_2px_0_0_#1E293B]";
               } else if (isStrong) {
-                cls +=
-                  "border-accent/50 bg-white/[0.05] text-white shadow-[0_0_16px_rgba(34,211,238,0.35)]";
+                cls += "border-ink bg-amber text-ink shadow-[3px_3px_0_0_#1E293B]";
               } else if (PUNCT.test(t)) {
-                cls += "border-white/5 bg-white/[0.02] text-slate-500";
+                cls +=
+                  "border-slate-300 bg-slate-100 font-medium text-slate-500";
               } else {
-                cls += "border-white/10 bg-white/[0.05] text-slate-300";
+                cls += "border-ink bg-white text-ink shadow-[2px_2px_0_0_#E2E8F0]";
               }
               return (
                 <span
@@ -222,7 +225,7 @@ function AttentionStage({ tokens, tokensKey, weights, truncated, delay, reduce, 
                 >
                   {t}
                   {hover === i && !isLast && weights[i] != null && (
-                    <span className="absolute -top-7 left-1/2 z-10 -translate-x-1/2 rounded-md border border-white/10 bg-ink px-1.5 py-0.5 text-[10px] tabular-nums text-accent">
+                    <span className="absolute -top-7 left-1/2 z-10 -translate-x-1/2 rounded-md bg-ink px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-white">
                       {(weights[i] * 100).toFixed(0)}%
                     </span>
                   )}
@@ -232,7 +235,7 @@ function AttentionStage({ tokens, tokensKey, weights, truncated, delay, reduce, 
           </div>
         </div>
       )}
-      <p className="mt-3 text-[11px] italic text-slate-500">
+      <p className="mt-3 text-[11px] font-medium italic text-slate-500">
         Illustrative attention — a simplified stand-in for real transformer
         attention.
       </p>
@@ -244,7 +247,7 @@ function UncertaintyGauge({ value, delay, reduce }) {
   const R = 42;
   const C = 2 * Math.PI * R;
   const guessing = value >= 0.65;
-  const color = guessing ? "#FBBF24" : "#22D3EE";
+  const color = guessing ? "#FBBF24" : "#8B5CF6";
   const caption =
     value < 0.35
       ? "The model is confident"
@@ -260,15 +263,15 @@ function UncertaintyGauge({ value, delay, reduce }) {
             cy="50"
             r={R}
             fill="none"
-            stroke="rgba(255,255,255,0.07)"
-            strokeWidth="7"
+            stroke="#E2E8F0"
+            strokeWidth="8"
           />
           <motion.circle
             cx="50"
             cy="50"
             r={R}
             fill="none"
-            strokeWidth="7"
+            strokeWidth="8"
             strokeLinecap="round"
             strokeDasharray={C}
             initial={reduce ? false : { strokeDashoffset: C, stroke: color }}
@@ -276,27 +279,22 @@ function UncertaintyGauge({ value, delay, reduce }) {
             transition={
               reduce ? { duration: 0 } : { duration: 0.8, ease: EASE, delay }
             }
-            style={{
-              filter: `drop-shadow(0 0 6px ${
-                guessing ? "rgba(251,191,36,0.45)" : "rgba(34,211,238,0.45)"
-              })`,
-            }}
           />
         </svg>
         <div className="absolute inset-0 grid place-items-center">
           <div className="text-center">
-            <div className="text-xl font-bold tabular-nums text-white">
+            <div className="font-display text-xl font-extrabold tabular-nums text-ink">
               {Math.round(value * 100)}
             </div>
-            <div className="text-[10px] uppercase tracking-widest text-slate-500">
+            <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
               uncertainty
             </div>
           </div>
         </div>
       </div>
       <p
-        className={`text-center text-xs transition-colors duration-300 ${
-          guessing ? "text-amber-300/90" : "text-slate-400"
+        className={`text-center text-xs font-bold transition-colors duration-300 ${
+          guessing ? "text-amber-600" : "text-slate-500"
         }`}
       >
         {caption}
@@ -323,26 +321,26 @@ function NextWordStage({ dist, uncertainty, delay, reduce, lit }) {
               <span
                 className={`w-24 shrink-0 text-right ${
                   item.isOther
-                    ? "whitespace-nowrap text-xs italic text-slate-500"
+                    ? "whitespace-nowrap text-xs font-medium italic text-slate-500"
                     : i === 0
-                      ? "truncate text-sm font-semibold text-accent"
-                      : "truncate text-sm text-slate-300"
+                      ? "truncate text-sm font-bold text-accent"
+                      : "truncate text-sm font-semibold text-ink"
                 }`}
               >
                 {item.isOther ? "everything else" : item.word}
               </span>
               <div
-                className={`h-2.5 min-w-0 flex-1 overflow-hidden rounded-full ${
-                  item.isOther ? "bg-transparent" : "bg-white/5"
+                className={`h-3 min-w-0 flex-1 overflow-hidden rounded-full ${
+                  item.isOther ? "bg-transparent" : "border border-slate-200 bg-slate-100"
                 }`}
               >
                 <motion.div
                   className={`h-full rounded-full ${
                     i === 0
-                      ? "bg-accent shadow-[0_0_12px_rgba(34,211,238,0.5)]"
+                      ? "bg-accent"
                       : item.isOther
-                        ? "border border-dashed border-slate-500/60 bg-slate-500/10"
-                        : "bg-slate-500/50"
+                        ? "border-2 border-dashed border-slate-400 bg-slate-100"
+                        : "bg-slate-300"
                   }`}
                   initial={reduce ? false : { width: 0 }}
                   animate={{ width: `${(item.prob / maxP) * 100}%` }}
@@ -359,7 +357,7 @@ function NextWordStage({ dist, uncertainty, delay, reduce, lit }) {
                 />
               </div>
               <span
-                className={`w-12 shrink-0 text-right text-xs tabular-nums ${
+                className={`w-12 shrink-0 text-right text-xs font-semibold tabular-nums ${
                   i === 0 ? "text-accent" : "text-slate-500"
                 }`}
               >
@@ -517,24 +515,23 @@ export default function GlassBox() {
     temperature <= 0.6 ? "cautious" : temperature >= 1.3 ? "creative" : "balanced";
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 shadow-[0_8px_40px_rgba(0,0,0,0.35)] backdrop-blur-md sm:p-8">
-      <div className="mb-3 flex flex-wrap gap-2">
+    <div className="rounded-2xl border-2 border-ink bg-white p-5 shadow-[4px_4px_0_0_#F472B6] sm:p-8 sm:shadow-[8px_8px_0_0_#F472B6]">
+      <div className="mb-4 flex flex-wrap gap-2">
         {EXAMPLES.map((ex) => (
-          <motion.button
+          <button
             key={ex}
             type="button"
-            whileTap={{ scale: 0.96 }}
             onClick={() => setSentence(ex)}
-            className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-slate-400 transition-colors duration-200 hover:border-accent/40 hover:text-accent"
+            className={`rounded-full border-2 border-ink bg-white px-3.5 py-1.5 text-xs font-bold text-ink transition-all duration-300 ${BOUNCE} hover:bg-amber active:translate-y-0.5`}
           >
             {ex}
-          </motion.button>
+          </button>
         ))}
       </div>
 
       <label
         htmlFor="glassbox-prompt"
-        className="mb-2 block text-xs font-medium uppercase tracking-widest text-slate-400"
+        className="mb-2 block text-xs font-bold uppercase tracking-widest text-ink"
       >
         Your sentence
       </label>
@@ -546,7 +543,7 @@ export default function GlassBox() {
           onChange={(e) => setInput(e.target.value)}
           placeholder='Try "The model predicts"'
           autoComplete="off"
-          className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-base text-white placeholder:text-slate-500 outline-none transition-colors duration-200 focus:border-accent/50 focus:ring-2 focus:ring-accent/20"
+          className="w-full rounded-xl border-2 border-slate-300 bg-white px-4 py-3 text-base text-ink outline-none transition-all duration-200 placeholder:text-slate-400 focus:border-accent focus:shadow-[4px_4px_0_0_#8B5CF6]"
         />
         {flash && (
           <motion.span
@@ -554,30 +551,30 @@ export default function GlassBox() {
             initial={{ opacity: 0 }}
             animate={{ opacity: [0, 1, 1, 0] }}
             transition={{ duration: 1.4, times: [0, 0.1, 0.7, 1], ease: "easeOut" }}
-            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded-md bg-accent/15 px-2 py-0.5 text-xs font-semibold text-accent shadow-[0_0_12px_rgba(34,211,238,0.4)]"
+            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded-lg border-2 border-ink bg-amber px-2 py-0.5 text-xs font-bold text-ink shadow-[2px_2px_0_0_#1E293B]"
           >
             +{flash.word}
           </motion.span>
         )}
       </div>
-      <p className="mt-2 text-xs text-slate-500">
+      <p className="mt-2 text-xs font-medium text-slate-500">
         This is a tiny model trained on ~1,500 sentences — when it writes
         nonsense, that&rsquo;s the point. Bigger models do the same thing with
         far more data.
       </p>
       {unknownLast && (
-        <p className="mt-1 text-xs italic text-slate-500">
+        <p className="mt-1 text-xs font-medium italic text-slate-500">
           New word to me — falling back to what I know overall.
         </p>
       )}
 
-      <div className="mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="mt-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="w-full md:max-w-xs">
           <div className="flex items-baseline justify-between text-xs">
-            <span className="font-medium text-slate-400">Temperature</span>
-            <span className="tabular-nums text-slate-300">
+            <span className="font-bold text-slate-500">Temperature</span>
+            <span className="font-semibold tabular-nums text-ink">
               {temperature.toFixed(2)}{" "}
-              <span className="text-slate-500">· {hint}</span>
+              <span className="font-medium text-slate-500">· {hint}</span>
             </span>
           </div>
           <input
@@ -590,7 +587,7 @@ export default function GlassBox() {
             aria-label="Temperature"
             className="mt-1.5 w-full accent-accent"
           />
-          <p className="mt-1 text-[11px] text-slate-500">
+          <p className="mt-1 text-[11px] font-medium text-slate-500">
             writing samples from the top 5
           </p>
         </div>
@@ -611,7 +608,7 @@ export default function GlassBox() {
             </Btn>
           </div>
           {contextFull && (
-            <p className="text-xs text-slate-400">
+            <p className="text-xs font-bold text-slate-500">
               Context full — reset to continue.
             </p>
           )}
@@ -620,8 +617,8 @@ export default function GlassBox() {
 
       <div className="mt-6 space-y-6">
         {tokens.length === 0 ? (
-          <div className="grid min-h-48 place-items-center rounded-xl border border-dashed border-white/10 bg-ink/40">
-            <p className="text-sm text-slate-500">
+          <div className="grid min-h-48 place-items-center rounded-2xl border-2 border-dashed border-slate-300 bg-paper">
+            <p className="text-sm font-medium text-slate-500">
               Type a few words to open the box.
             </p>
           </div>
