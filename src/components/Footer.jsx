@@ -47,7 +47,7 @@ export default function Footer() {
           <span className="mx-2.5">·</span>Akash S
         </p>
         <p className="mt-1 text-[11px] font-medium leading-relaxed text-slate-500 sm:text-xs">
-          Sri Krishna College of Technology
+          Sri Krishna College of Engineering and Technology
         </p>
       </div>
     </footer>
