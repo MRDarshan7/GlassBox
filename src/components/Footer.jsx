@@ -37,10 +37,15 @@ export default function Footer() {
           <MarqueeRow />
         </div>
       </div>
-      <p className="mx-auto max-w-6xl px-4 py-10 text-center text-xs font-medium leading-relaxed text-slate-500 sm:text-sm">
-        Built by The Outliers · Prompt-engineered with Claude Code · Model runs
-        entirely in your browser
-      </p>
+      <div className="mx-auto max-w-6xl px-4 py-10 text-center">
+        <p className="text-xs font-medium leading-relaxed text-slate-500 sm:text-sm">
+          Built by The Outliers · Prompt-engineered with Claude Code · Model
+          runs entirely in your browser
+        </p>
+        <p className="mt-1 text-[11px] font-medium leading-relaxed text-slate-500 sm:text-xs">
+          M R Darshan · Tarun A · Akash S
+        </p>
+      </div>
     </footer>
   );
 }
