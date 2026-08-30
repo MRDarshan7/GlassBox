@@ -8,7 +8,7 @@
 
 Every word an AI writes is the end of an invisible process. GlassBox opens the
 black box: a real (tiny) language model runs entirely in your browser, and the
-page shows the pipeline between your text and the model's next word.
+page shows the pipeline between your text and the model's next word
 
 ## What the demo shows
 
